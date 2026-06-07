@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
+import folium
+from streamlit_folium import st_folium
 
-# =====================================
+# =====================================================
 # KONFIGURASI HALAMAN
-# =====================================
+# =====================================================
 
 st.set_page_config(
     page_title="SPK Penentuan Waktu Tanam Cabai Rawit",
@@ -11,36 +13,40 @@ st.set_page_config(
     layout="wide"
 )
 
-# =====================================
-# CSS CUSTOM
-# =====================================
+# =====================================================
+# CSS
+# =====================================================
 
 st.markdown("""
 <style>
 
-.main {
-    background-color: #f8fafc;
+[data-testid="stSidebar"] {
+    background-color: #B71C1C;
 }
 
-.kpi-card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
-    text-align:center;
+[data-testid="stSidebar"] * {
+    color: white;
 }
 
-.big-title {
+.main-title {
     text-align:center;
-    color:#c62828;
+    color:#B71C1C;
+    font-size:40px;
+    font-weight:bold;
+}
+
+.sub-title {
+    text-align:center;
+    color:gray;
+    font-size:18px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# =====================================
+# =====================================================
 # DATA PREDIKSI
-# =====================================
+# =====================================================
 
 data_prediksi = {
     "Pancor":[34945,50261,59072,65256,70877,71979,64597,60665,59525,52333,50465,49932],
@@ -49,41 +55,44 @@ data_prediksi = {
     "Sakra":[34238,46429,59489,64487,66233,66401,64098,62493,60187,54090,50113,48637]
 }
 
-# =====================================
+# =====================================================
 # SIDEBAR
-# =====================================
-
-st.sidebar.image(
-    "https://cdn-icons-png.flaticon.com/512/2909/2909764.png",
-    width=120
-)
+# =====================================================
 
 st.sidebar.title("🌶️ SPK Cabai Rawit")
 
 menu = st.sidebar.radio(
-    "Menu Navigasi",
+    "Menu",
     [
         "Dashboard",
         "Analisis Harga",
+        "Peta Spasial",
         "Rekomendasi Waktu Tanam",
         "Tentang Sistem"
     ]
 )
 
-# =====================================
+# =====================================================
 # DASHBOARD
-# =====================================
+# =====================================================
 
 if menu == "Dashboard":
 
     st.markdown(
-        "<h1 class='big-title'>🌶️ Sistem Pendukung Keputusan Penentuan Waktu Tanam Cabai Rawit</h1>",
+        """
+        <div class='main-title'>
+        🌶️ Sistem Pendukung Keputusan
+        Penentuan Waktu Tanam Cabai Rawit
+        </div>
+
+        <div class='sub-title'>
+        Berbasis Prediksi Harga Cabai Rawit
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
     st.markdown("---")
-
-    jumlah_pasar = len(data_prediksi)
 
     harga_tertinggi = 0
     pasar_tertinggi = ""
@@ -98,39 +107,33 @@ if menu == "Dashboard":
 
     with col1:
         st.metric(
-            "📍 Jumlah Pasar",
-            jumlah_pasar
+            "Jumlah Pasar",
+            len(data_prediksi)
         )
 
     with col2:
         st.metric(
-            "💰 Harga Prediksi Tertinggi",
+            "Harga Tertinggi",
             f"Rp {harga_tertinggi:,.0f}"
         )
 
     with col3:
         st.metric(
-            "🏆 Pasar Tertinggi",
+            "Pasar Tertinggi",
             pasar_tertinggi
         )
 
     st.markdown("---")
 
-    st.subheader("Tujuan Sistem")
+    st.info("""
+    Sistem ini membantu petani menentukan waktu tanam cabai rawit
+    berdasarkan prediksi harga 12 minggu ke depan menggunakan
+    metode Random Forest.
+    """)
 
-    st.info(
-        """
-        Sistem ini membantu petani dalam menentukan waktu tanam cabai rawit
-        yang optimal berdasarkan hasil prediksi harga selama 12 minggu ke depan.
-
-        Sistem memanfaatkan model Random Forest untuk menghasilkan prediksi
-        harga dan memberikan rekomendasi waktu tanam yang lebih menguntungkan.
-        """
-    )
-
-# =====================================
+# =====================================================
 # ANALISIS HARGA
-# =====================================
+# =====================================================
 
 elif menu == "Analisis Harga":
 
@@ -148,14 +151,10 @@ elif menu == "Analisis Harga":
         "Prediksi Harga (Rp)": prediksi
     })
 
-    st.subheader(f"Prediksi Harga Pasar {pasar}")
-
     st.dataframe(
         df,
         use_container_width=True
     )
-
-    st.subheader("Grafik Prediksi Harga")
 
     st.line_chart(
         df.set_index("Minggu")
@@ -165,12 +164,49 @@ elif menu == "Analisis Harga":
     minggu_puncak = prediksi.index(harga_puncak) + 1
 
     st.success(
-        f"Harga tertinggi diprediksi sebesar Rp {harga_puncak:,.0f} pada minggu ke-{minggu_puncak}"
+        f"Harga puncak diprediksi Rp {harga_puncak:,.0f} pada minggu ke-{minggu_puncak}"
     )
 
-# =====================================
+# =====================================================
+# PETA SPASIAL
+# =====================================================
+
+elif menu == "Peta Spasial":
+
+    st.title("🗺️ Peta Spasial Pasar Cabai Rawit")
+
+    m = folium.Map(
+        location=[-8.64, 116.52],
+        zoom_start=11
+    )
+
+    data_peta = [
+        ["Pancor",-8.65329,116.52276,71979],
+        ["Aikmel",-8.60753,116.53173,69942],
+        ["Paok Motong",-8.62293,116.52089,76512],
+        ["Sakra",-8.66073,116.47507,66401]
+    ]
+
+    for pasar, lat, lon, harga in data_peta:
+
+        folium.Marker(
+            location=[lat, lon],
+            popup=f"""
+            <b>{pasar}</b><br>
+            Harga Puncak: Rp {harga:,.0f}
+            """,
+            tooltip=pasar
+        ).add_to(m)
+
+    st_folium(
+        m,
+        width=1200,
+        height=600
+    )
+
+# =====================================================
 # REKOMENDASI TANAM
-# =====================================
+# =====================================================
 
 elif menu == "Rekomendasi Waktu Tanam":
 
@@ -186,31 +222,26 @@ elif menu == "Rekomendasi Waktu Tanam":
     harga_puncak = max(prediksi)
     minggu_puncak = prediksi.index(harga_puncak) + 1
 
-    st.subheader("Hasil Analisis")
-
-    st.success(
-        f"Harga tertinggi di pasar {pasar} diperkirakan terjadi pada minggu ke-{minggu_puncak}"
-    )
-
     st.metric(
         "Harga Puncak",
         f"Rp {harga_puncak:,.0f}"
     )
 
+    st.success(
+        f"Harga tertinggi diperkirakan terjadi pada minggu ke-{minggu_puncak}"
+    )
+
     st.info(
         f"""
-        Berdasarkan hasil prediksi, harga tertinggi diperkirakan terjadi pada minggu ke-{minggu_puncak}.
-
         Dengan asumsi masa budidaya cabai rawit ±10 minggu,
-        maka petani disarankan mulai melakukan penanaman sekitar
-        10 minggu sebelum periode harga puncak agar panen
-        bertepatan dengan kondisi harga yang tinggi.
+        maka waktu tanam disarankan sekitar 10 minggu sebelum
+        minggu ke-{minggu_puncak}.
         """
     )
 
-# =====================================
+# =====================================================
 # TENTANG SISTEM
-# =====================================
+# =====================================================
 
 elif menu == "Tentang Sistem":
 
@@ -220,19 +251,20 @@ elif menu == "Tentang Sistem":
     ### Sistem Pendukung Keputusan Penentuan Waktu Tanam Cabai Rawit
 
     Sistem ini dikembangkan untuk membantu petani menentukan
-    waktu tanam yang optimal berdasarkan prediksi harga cabai rawit.
+    waktu tanam yang optimal berdasarkan prediksi harga.
 
-    ### Data Pasar
+    ### Pasar yang Dianalisis
     - Pancor
     - Aikmel
     - Paok Motong
     - Sakra
 
-    ### Metode Prediksi
+    ### Metode
     Random Forest Regressor
 
-    ### Output Sistem
+    ### Output
     - Prediksi harga 12 minggu
     - Analisis harga puncak
+    - Peta spasial pasar
     - Rekomendasi waktu tanam
     """)
