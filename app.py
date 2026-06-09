@@ -223,19 +223,44 @@ elif menu == "Rekomendasi Waktu Tanam":
     minggu_puncak = prediksi.index(harga_puncak) + 1
 
     st.metric(
-        "Harga Puncak",
+        "Harga Puncak Prediksi",
         f"Rp {harga_puncak:,.0f}"
     )
 
     st.success(
-        f"Harga tertinggi diperkirakan terjadi pada minggu ke-{minggu_puncak}"
+        f"Harga tertinggi diprediksi terjadi pada minggu ke-{minggu_puncak}"
     )
+
+    st.subheader("📋 Hasil Rekomendasi")
 
     st.info(
         f"""
-        Dengan asumsi masa budidaya cabai rawit ±10 minggu,
-        maka waktu tanam disarankan sekitar 10 minggu sebelum
-        minggu ke-{minggu_puncak}.
+        Berdasarkan hasil prediksi harga cabai rawit pada Pasar {pasar},
+        harga tertinggi diperkirakan terjadi pada minggu ke-{minggu_puncak}
+        dengan nilai sekitar Rp {harga_puncak:,.0f}.
+
+        Dengan asumsi umur panen cabai rawit sekitar 12 minggu (3 bulan),
+        periode harga tersebut dapat dijadikan acuan dalam menyusun
+        rencana tanam pada musim tanam berikutnya.
+
+        📌 Informasi harga minggu ke-{minggu_puncak} dapat digunakan
+        sebagai dasar perencanaan penanaman sekitar 12 minggu sebelumnya
+        sehingga periode panen diperkirakan bertepatan dengan kondisi
+        harga yang relatif lebih tinggi.
+        """
+    )
+
+    st.markdown("### Ringkasan untuk Petani")
+
+    st.markdown(
+        f"""
+        ✅ Harga tertinggi diprediksi pada **minggu ke-{minggu_puncak}**
+
+        ✅ Harga prediksi sekitar **Rp {harga_puncak:,.0f}/kg**
+
+        ✅ Umur panen cabai rawit sekitar **12 minggu (3 bulan)**
+
+        ✅ Periode harga tersebut dapat dijadikan acuan dalam merencanakan waktu tanam pada musim tanam berikutnya
         """
     )
 
